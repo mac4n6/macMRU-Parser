@@ -9,7 +9,7 @@ Python script to parse the Most Recently Used (MRU) plist files on OS X into a m
 
 ##Dependencies:      
 * hexdump.py: https://pypi.python.org/pypi/hexdump    
-* ccl_bplist.py: https://github.com/jorik041/ccl-bplist
+* ccl_bplist.py: https://github.com/cclgroupltd/ccl-bplist
 
 ##Related Information:
 https://www.mac4n6.com/blog/2016/7/10/new-script-macmru-most-recently-used-plist-parser
