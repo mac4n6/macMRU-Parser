@@ -487,7 +487,7 @@ if __name__ == "__main__":
     \n\tDependencies:\
     \n\t\thexdump.py: https://pypi.python.org/pypi/hexdump\
     \n\t\tccl_bplist.py: https://github.com/cclgroupltd/ccl-bplist\
-    \n\t\tmac_alias.py: https://pypi.python.org/pypi/mac_alias'
+    \n\t\tmac_alias: https://pypi.python.org/pypi/mac_alias'
         , prog='macMRU.py'
         , formatter_class=RawTextHelpFormatter)
     parser.add_argument('--blob_hex', action='store_true', help="Include hex dump of Bookmark BLOBs in standard output (can very verbose!)")
