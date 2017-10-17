@@ -213,7 +213,41 @@ def ParseSFL(MRUFile):
                     BLOB_hex(blob)
     except:
         print "Cannot open file: " + MRUFile
-        
+ 
+def ParseSFL2(MRUFile):
+    
+    try:
+        plistfile = open(MRUFile, "rb")
+        plist = ccl_bplist.load(plistfile)
+        plist_objects = ccl_bplist.deserialise_NsKeyedArchiver(plist, parse_whole_structure=True)
+
+        try:
+            if plist_objects["root"]["NS.objects"][1]["NS.keys"][0] == "com.apple.LSSharedFileList.MaxAmount":
+                numberOfItems = plist_objects["root"]["NS.objects"][1]["NS.objects"][0]
+                print "Max number of recent items in this plist: " + str(numberOfItems)
+        except:
+            pass
+
+        if plist_objects["root"]["NS.keys"][0] == "items":
+            items = plist_objects["root"]["NS.objects"][0]["NS.objects"] 
+
+            for n,item in enumerate(items):
+                attribute_keys = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.keys"]
+                attribute_values = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.objects"]
+                attributes = dict(zip(attribute_keys,attribute_values))
+
+                print "    [Item Number: " + str(n) +  " | (UUID:'" + attributes["uuid"] + "') | Visibility: " + str(attributes["visibility"]) + "] Name:'" + attributes["Name"] + "'"
+
+                #Unknown "CustomItemProperties" - Only seen blank, uncomment to see details.
+                #print attributes["CustomItemProperties"]
+                if "LSSharedFileList.RecentHosts" not in MRUFile:
+                    blob = attributes["Bookmark"]
+                    BLOBParser_raw(blob)
+                    BLOBParser_human(blob) 
+                    BLOB_hex(blob)
+    except:
+        print "Cannot open file: " + MRUFile
+
 def ParseLSShardFileListPlist(MRUFile):
     try:
         plistfile = open(MRUFile, "rb")
@@ -476,12 +510,17 @@ if __name__ == "__main__":
     \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentDocuments.sfl\
     \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentServers.sfl\
     \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentHosts.sfl\
+    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle_id>.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentApplications.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentDocuments.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentServers.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentHosts.sfl2\
     \n\t- MS Office 2011 - /Users/<username>/Library/Preferences/com.microsoft.office.plist\
     \n\t- MS Office 2016 - /Users/<username>/Library/Containers/com.microsoft.<app>/Data/Library/Preferences/com.microsoft.<app>.securebookmarks.plist \
     \n\t- Spotlight Shortcuts - /Users/<username>/Library/Application Support/com.apple.spotlight.Shortcuts \
     \n \
-    \n\tVersion: 1.2\
-    \n\tUpdated: 07/19/2017\
+    \n\tVersion: 1.3\
+    \n\tUpdated: 10/16/2017\
     \n\tAuthor: Sarah Edwards | @iamevltwin | mac4n6.com | oompa@csh.rit.edu\
     \n\
     \n\tDependencies:\
@@ -498,7 +537,7 @@ if __name__ == "__main__":
 
     MRUDirectory = args.MRU_DIR
 
-    print "###### MacMRU Parser v1.2 ######"
+    print "###### MacMRU Parser v1.3 ######"
 
     for root, dirs, filenames in os.walk(MRUDirectory):
         for f in filenames:
@@ -507,6 +546,12 @@ if __name__ == "__main__":
                 print "=============================================================================="
                 print "Parsing: " + MRUFile
                 ParseSFL(MRUFile)
+                print "=============================================================================="
+            elif f.endswith(".sfl2") and not fnmatch.fnmatch(f,'*Favorite*.sfl2') and not fnmatch.fnmatch(f,'*Project*.sfl2') and not fnmatch.fnmatch(f,'*iCloudItems*.sfl2'):
+                MRUFile = os.path.join(root,f)
+                print "=============================================================================="
+                print "Parsing: " + MRUFile
+                ParseSFL2(MRUFile)
                 print "=============================================================================="
             elif f.endswith(".LSSharedFileList.plist"):
                 MRUFile = os.path.join(root,f)
