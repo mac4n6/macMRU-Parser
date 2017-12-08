@@ -235,8 +235,22 @@ def ParseSFL2(MRUFile):
                 attribute_keys = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.keys"]
                 attribute_values = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.objects"]
                 attributes = dict(zip(attribute_keys,attribute_values))
+                try:
+                    uuid = attributes["uuid"]
+                except:
+                    uuid = "No 'UUID' Attribute"
+                
+                try:
+                    visability = str(attributes["visibility"])
+                except:
+                    visability = "No 'Visability' Attribute"
 
-                print "    [Item Number: " + str(n) +  " | (UUID:'" + attributes["uuid"] + "') | Visibility: " + str(attributes["visibility"]) + "] Name:'" + attributes["Name"] + "'"
+                try:
+                    name = attributes["Name"]
+                except:
+                    name = "No 'Name' Attribute (Use BLOB parser for name)"
+
+                print "    [Item Number: " + str(n) +  " | (UUID:'" + uuid + "') | Visibility: " + visability + "] Name:'" + name + "'"
 
                 #Unknown "CustomItemProperties" - Only seen blank, uncomment to see details.
                 #print attributes["CustomItemProperties"]
@@ -248,7 +262,7 @@ def ParseSFL2(MRUFile):
     except:
         print "Cannot open file: " + MRUFile
 
-def ParseLSShardFileListPlist(MRUFile):
+def ParseLSSharedFileListPlist(MRUFile):
     try:
         plistfile = open(MRUFile, "rb")
         plist = ccl_bplist.load(plistfile)
@@ -502,25 +516,25 @@ if __name__ == "__main__":
         description='\
     Parse the Mac MRU (Most Recently Used) Plist Files \
     \n\n\tMac MRU File Locations: \
-    \n\t- /Users/<username>/Library/Preferences/<bundle_id>.LSShardFileList.plist\
+    \n\t- /Users/<username>/Library/Preferences/<bundle_id>.LSSharedFileList.plist\
     \n\t- /Users/<username>/Library/Preferences/com.apple.finder.plist\
     \n\t- [10.10-] /Users/<username>/Library/Preferences/com.apple.recentitems.plist\
-    \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle_id>.sfl\
-    \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentApplications.sfl\
-    \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentDocuments.sfl\
-    \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentServers.sfl\
-    \n\t- [10.11+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentHosts.sfl\
-    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle_id>.sfl2\
-    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentApplications.sfl2\
-    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentDocuments.sfl2\
-    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentServers.sfl2\
-    \n\t- [10.13+] /Users/<username>/Library/Library/Application Support/com.apple.sharedfilelist/RecentHosts.sfl2\
+    \n\t- [10.11+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle_id>.sfl\
+    \n\t- [10.11+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/RecentApplications.sfl\
+    \n\t- [10.11+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/RecentDocuments.sfl\
+    \n\t- [10.11+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/RecentServers.sfl\
+    \n\t- [10.11+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/RecentHosts.sfl\
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/<bundle_id>.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.RecentApplications.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.RecentDocuments.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.RecentServers.sfl2\
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.RecentHosts.sfl2\
     \n\t- MS Office 2011 - /Users/<username>/Library/Preferences/com.microsoft.office.plist\
     \n\t- MS Office 2016 - /Users/<username>/Library/Containers/com.microsoft.<app>/Data/Library/Preferences/com.microsoft.<app>.securebookmarks.plist \
     \n\t- Spotlight Shortcuts - /Users/<username>/Library/Application Support/com.apple.spotlight.Shortcuts \
     \n \
-    \n\tVersion: 1.3\
-    \n\tUpdated: 10/16/2017\
+    \n\tVersion: 1.4\
+    \n\tUpdated: 12/07/2017\
     \n\tAuthor: Sarah Edwards | @iamevltwin | mac4n6.com | oompa@csh.rit.edu\
     \n\
     \n\tDependencies:\
@@ -537,7 +551,7 @@ if __name__ == "__main__":
 
     MRUDirectory = args.MRU_DIR
 
-    print "###### MacMRU Parser v1.3 ######"
+    print "###### MacMRU Parser v1.4 ######"
 
     for root, dirs, filenames in os.walk(MRUDirectory):
         for f in filenames:
@@ -557,7 +571,7 @@ if __name__ == "__main__":
                 MRUFile = os.path.join(root,f)
                 print "=============================================================================="
                 print "Parsing: " + MRUFile
-                ParseLSShardFileListPlist(MRUFile)
+                ParseLSSharedFileListPlist(MRUFile)
                 print "=============================================================================="
             elif f == "com.apple.finder.plist":
                 MRUFile = os.path.join(root,f)
