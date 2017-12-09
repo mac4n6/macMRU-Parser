@@ -37,6 +37,7 @@ import fnmatch
 import plistlib
 from mac_alias import Bookmark
 from mac_alias import Alias
+import uuid
 
 def BLOBParser_human(blob):
     #As described in:
@@ -85,14 +86,20 @@ def BLOBParser_human(blob):
             print "\tBookmark BLOB: URL Length Array [0xe003]: \t" + str(b.get(0xe003,default=None))
             print "\tBookmark BLOB: Localized Name (?) [0xf017]: \t" + str(b.get(0xf017,default=None))
             print "\tBookmark BLOB: Unknown [0xf022]: \t\t" + str(b.get(0xf022,default=None))
-            count = "1"
+
             if b.get(0xf020,default=None):
-                filename = "ICNS_file_" + count + ".icns"
+                print "in_icon_loop"
+                icon_uuid = uuid.uuid4()
+                print icon_uuid
+                
+                filename = "ICNS_file_" + str(icon_uuid) + ".icns"
+
                 saveICNS = open(filename,'w')
                 saveICNS.write(b.get(0xf020,default=None).bytes)
                 saveICNS.close()
-            print "\tBookmark BLOB: ICNS (Icon) File [0xf020]: \tICNS File Saved in: " + filename
-            count += count
+
+                print "\tBookmark BLOB: ICNS (Icon) File [0xf020]: \tICNS File Saved in: " + filename
+
         except:
             pass
 
