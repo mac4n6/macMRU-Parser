@@ -88,7 +88,7 @@ def BLOBParser_human(blob):
             print "\tBookmark BLOB: Unknown [0xf022]: \t\t" + str(b.get(0xf022,default=None))
 
             if b.get(0xf020,default=None):
-                print "in_icon_loop"
+
                 icon_uuid = uuid.uuid4()
                 print icon_uuid
                 
