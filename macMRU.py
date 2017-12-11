@@ -269,6 +269,63 @@ def ParseSFL2(MRUFile):
     except:
         print "Cannot open file: " + MRUFile
 
+def ParseSFL2_FavoriteVolumes(MRUFile):
+    
+    try:
+        plistfile = open(MRUFile, "rb")
+        plist = ccl_bplist.load(plistfile)
+        plist_objects = ccl_bplist.deserialise_NsKeyedArchiver(plist, parse_whole_structure=True)
+
+        print "Item number has no bearing upon time of usage."
+        print "Plist Properties:"
+        if plist_objects["root"]["NS.keys"][1] == "properties":
+
+            properties_keys = plist_objects["root"]["NS.objects"][1]["NS.keys"]
+            properties_values = plist_objects["root"]["NS.objects"][1]["NS.objects"]
+            properties = dict(zip(properties_keys,properties_values))
+            for key in properties:
+                print  "    " + key + ": " + str(properties[key])
+
+        if plist_objects["root"]["NS.keys"][0] == "items":
+            items = plist_objects["root"]["NS.objects"][0]["NS.objects"] 
+
+            for n,item in enumerate(items):
+                attribute_keys = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.keys"]
+                attribute_values = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.objects"]
+                attributes = dict(zip(attribute_keys,attribute_values))
+                try:
+                    uuid = attributes["uuid"]
+                except:
+                    uuid = "No 'UUID' Attribute"
+                
+                try:
+                    visability = str(attributes["visibility"])
+                except:
+                    visability = "No 'Visability' Attribute"
+
+                try:
+                    name = attributes["Name"]
+                except:
+                    name = "No 'Name' Attribute (Use BLOB parser for name)"
+
+                print "\n    [Item Number: " + str(n) +  " | (UUID:'" + uuid + "') | Visibility: " + visability + "] Name: '" + name + "'"
+
+                if attributes["CustomItemProperties"]:
+                    CIP_keys = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.objects"][1]["NS.keys"]
+                    CIP_values = plist_objects["root"]["NS.objects"][0]["NS.objects"][n]["NS.objects"][1]["NS.objects"]
+                    CIP_attributes = dict(zip(CIP_keys,CIP_values))
+                    print "\tCustomItemProperties:"
+                    for key in CIP_attributes:
+                        print  "\t  " + key + ": " + str(CIP_attributes[key])
+
+                if "LSSharedFileList.RecentHosts" not in MRUFile:
+                    blob = attributes["Bookmark"]
+                    BLOBParser_raw(blob)
+                    BLOBParser_human(blob) 
+                    BLOB_hex(blob)
+    except:
+        print "Cannot open file: " + MRUFile
+
 def ParseLSSharedFileListPlist(MRUFile):
     try:
         plistfile = open(MRUFile, "rb")
@@ -379,6 +436,7 @@ def ParseFinderPlist(MRUFile):
         plistfile = open(MRUFile, "rb")
         plist = ccl_bplist.load(plistfile)
 
+        print "Parsing FXRecentFolders Key"
         print "[MRUs are listed from Newest to Oldest (ie: Item 0 - Item 9)]"
         try:
             for n,item in enumerate(plist["FXRecentFolders"]):
@@ -401,8 +459,93 @@ def ParseFinderPlist(MRUFile):
                     pass
         except:
             pass
+
+        print "\nParsing FXDesktopVolumePositions Key"
+        print "Item number has no bearing upon time of usage."
+        try:
+            for n,item in enumerate(plist["FXDesktopVolumePositions"]):
+                item_split = item.split('_0x')
+                item_timestamp = "0x" + item_split[1]
+                if float.fromhex(item_timestamp) > 0:
+                    volume_creation = gmtime(int(float.fromhex(item_timestamp) + 978307200))
+                    volume_creation_ts = strftime("%m-%d-%Y %H:%M:%S", volume_creation) 
+                    print "    [Item Number: " + str(n) + "] Volume Created: " + volume_creation_ts+ "  Volume Name: '" + item_split[0] + "'\tOriginal Key: '" + item + "'"
+                else:
+                    print "    [Item Number: " + str(n) + "] Volume Created: None\t\t   Volume Name: '" + item_split[0] + "'\tOriginal Key: '" + item + "'"
+        except:
+            pass
+
     except:
         print "Cannot open file: " + MRUFile
+
+def ParseSidebarlistsPlist(MRUFile):
+    try:
+        plistfile = open(MRUFile, "rb")
+        plist = ccl_bplist.load(plistfile)
+
+        print "Parsing 'systemitems' Key (Only --blob_hex works)"
+        print "Item number has no bearing upon time of usage."
+        try:
+            for n,item in enumerate(plist["systemitems"]['VolumesList']):
+                print "    [Item Number: " + str(n) + "] '" + item["Name"] + "' EntryType: " + str(item['EntryType'])
+
+                try:
+                    print "\tSpecialID: " + str(item['SpecialID'])
+                except:
+                    pass
+
+                try:
+                    print "\tVisibility: " + str(item['Visibility'])
+                except:
+                    pass
+
+                try:
+                    print "\tFlags: " + str(item['Flags'])
+                except:
+                    pass
+
+                try:
+                    blob = plist["systemitems"]['VolumesList'][n]['Alias']
+                    #BLOBParser_raw(blob)
+                    #BLOBParser_human(blob) 
+                    BLOB_hex(blob)
+                except:
+                    pass
+        except:
+           pass
+
+        print "Parsing 'favorites' Key (Only --blob_hex works)"
+        print "Item number has no bearing upon time of usage."
+        try:
+            for n,item in enumerate(plist["favorites"]['VolumesList']):
+                print "    [Item Number: " + str(n) + "] '" + item["Name"] + "' EntryType: " + str(item['EntryType'])
+
+                try:
+                    print "\tSpecialID: " + str(item['SpecialID'])
+                except:
+                    pass
+
+                try:
+                    print "\tVisibility: " + str(item['Visibility'])
+                except:
+                    pass
+
+                try:
+                    print "\tFlags: " + str(item['Flags'])
+                except:
+                    pass
+
+                try:
+                    blob = plist["systemitems"]['VolumesList'][n]['Alias']
+                    #BLOBParser_raw(blob)
+                    #BLOBParser_human(blob) 
+                    BLOB_hex(blob)
+                except:
+                    pass
+        except:
+           pass
+    except:
+       print "Cannot open file: " + MRUFile
 
 def ParseMSOffice2016Plist(MRUFile):
     try:
@@ -539,9 +682,11 @@ if __name__ == "__main__":
     \n\t- MS Office 2011 - /Users/<username>/Library/Preferences/com.microsoft.office.plist\
     \n\t- MS Office 2016 - /Users/<username>/Library/Containers/com.microsoft.<app>/Data/Library/Preferences/com.microsoft.<app>.securebookmarks.plist \
     \n\t- Spotlight Shortcuts - /Users/<username>/Library/Application Support/com.apple.spotlight.Shortcuts \
+    \n\t- [10.12-]/Users/<username>/Library/Preferences/com.apple.sidebarlists.plist \
+    \n\t- [10.13+] /Users/<username>/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.FavoriteVolumes.sfl2\ \
     \n \
-    \n\tVersion: 1.4\
-    \n\tUpdated: 12/07/2017\
+    \n\tVersion: 1.5\
+    \n\tUpdated: 12/10/2017\
     \n\tAuthor: Sarah Edwards | @iamevltwin | mac4n6.com | oompa@csh.rit.edu\
     \n\
     \n\tDependencies:\
@@ -558,7 +703,7 @@ if __name__ == "__main__":
 
     MRUDirectory = args.MRU_DIR
 
-    print "###### MacMRU Parser v1.4 ######"
+    print "###### MacMRU Parser v1.5 ######"
 
     for root, dirs, filenames in os.walk(MRUDirectory):
         for f in filenames:
@@ -574,6 +719,12 @@ if __name__ == "__main__":
                 print "Parsing: " + MRUFile
                 ParseSFL2(MRUFile)
                 print "=============================================================================="
+            elif f.endswith("FavoriteVolumes.sfl2"):
+                MRUFile = os.path.join(root,f)
+                print "=============================================================================="
+                print "Parsing: " + MRUFile
+                ParseSFL2_FavoriteVolumes(MRUFile)
+                print "=============================================================================="
             elif f.endswith(".LSSharedFileList.plist"):
                 MRUFile = os.path.join(root,f)
                 print "=============================================================================="
@@ -586,7 +737,13 @@ if __name__ == "__main__":
                 print "Parsing: " + MRUFile
                 ParseFinderPlist(MRUFile)
                 print "=============================================================================="
-            elif f == "com.apple.recentitems.plist":
+            elif f == "com.apple.sidebarlists.plist":
+                MRUFile = os.path.join(root,f)
+                print "=============================================================================="
+                print "Parsing: " + MRUFile
+                ParseSidebarlistsPlist(MRUFile)
+                print "==============================================================================" 
+            elif f == "com.apple.recentitems.plist":               
                 MRUFile = os.path.join(root,f)
                 print "=============================================================================="
                 print "Parsing: " + MRUFile
